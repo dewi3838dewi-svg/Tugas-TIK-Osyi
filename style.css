@@ -1,0 +1,318 @@
+:root {
+  --primary: #5367d8;
+  --primary-dark: #4053bf;
+  --background: #f4f6fc;
+  --white: #ffffff;
+  --text: #20243a;
+  --muted: #737991;
+  --border: #e7eaf3;
+  --green: #198754;
+  --red: #d94b5b;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: var(--background);
+  color: var(--text);
+}
+
+.container {
+  width: min(900px, 92%);
+  margin: auto;
+  padding: 28px 0 48px;
+}
+
+/* Header */
+header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.logo {
+  display: inline-grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  border-radius: 17px;
+  background: var(--primary);
+  color: white;
+  font-size: 26px;
+  margin-bottom: 10px;
+}
+
+h1 {
+  margin: 0;
+  font-size: 30px;
+}
+
+.subtitle {
+  color: var(--muted);
+  font-size: 14px;
+  margin-top: 8px;
+}
+
+/* Panel */
+.panel {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 22px;
+  box-shadow: 0 8px 28px rgba(34, 48, 100, 0.05);
+  margin-bottom: 18px;
+}
+
+h2 {
+  margin: 0 0 16px;
+  font-size: 18px;
+}
+
+/* Form */
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 13px;
+}
+
+.field.full {
+  grid-column: 1 / -1;
+}
+
+label {
+  display: block;
+  font-size: 13px;
+  font-weight: bold;
+  margin-bottom: 7px;
+}
+
+input,
+select {
+  width: 100%;
+  padding: 12px 13px;
+  border: 1px solid #dfe3ee;
+  border-radius: 10px;
+  font-size: 14px;
+  outline: none;
+  background: white;
+}
+
+input:focus,
+select:focus {
+  border-color: var(--primary);
+}
+
+/* Buttons */
+button {
+  border: none;
+  border-radius: 10px;
+  padding: 11px 15px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+button:hover {
+  transform: translateY(-1px);
+}
+
+.primary {
+  background: var(--primary);
+  color: white;
+}
+
+.primary:hover {
+  background: var(--primary-dark);
+}
+
+.secondary {
+  background: #eef0ff;
+  color: var(--primary-dark);
+}
+
+.danger {
+  background: #fff0f1;
+  color: var(--red);
+}
+
+.form-actions {
+  display: flex;
+  gap: 9px;
+  margin-top: 16px;
+}
+
+.form-actions button {
+  flex: 1;
+}
+
+/* Statistik */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.stat {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  padding: 14px;
+  text-align: center;
+}
+
+.stat strong {
+  display: block;
+  font-size: 23px;
+  color: var(--primary);
+}
+
+.stat span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+/* Daftar kegiatan */
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.toolbar h2 {
+  margin: 0;
+}
+
+.filters {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+
+.filter {
+  background: #f0f2f8;
+  color: #626a82;
+  padding: 8px 11px;
+  font-size: 12px;
+}
+
+.filter.active {
+  background: var(--primary);
+  color: white;
+}
+
+.task-list {
+  display: grid;
+  gap: 10px;
+}
+
+.task {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  background: white;
+}
+
+.task input[type="checkbox"] {
+  width: 19px;
+  height: 19px;
+  accent-color: var(--primary);
+}
+
+.task-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.task-title {
+  font-weight: bold;
+  overflow-wrap: anywhere;
+}
+
+.task.done .task-title {
+  text-decoration: line-through;
+  color: #969caf;
+}
+
+.task-meta {
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 6px;
+}
+
+.task-category {
+  display: inline-block;
+  margin-top: 7px;
+  padding: 4px 8px;
+  border-radius: 20px;
+  background: #eef0ff;
+  color: var(--primary-dark);
+  font-size: 11px;
+}
+
+.task-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.task-actions button {
+  padding: 7px 9px;
+  font-size: 12px;
+}
+
+/* Tampilan kosong */
+.empty {
+  text-align: center;
+  padding: 28px 12px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+/* Footer */
+footer {
+  text-align: center;
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 22px;
+}
+
+/* Tampilan HP */
+@media (max-width: 600px) {
+  .container {
+    padding-top: 22px;
+  }
+
+  h1 {
+    font-size: 26px;
+  }
+
+  .panel {
+    padding: 17px;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .field.full {
+    grid-column: auto;
+  }
+
+  .toolbar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .task-actions {
+    flex-direction: column;
+  }
+}
