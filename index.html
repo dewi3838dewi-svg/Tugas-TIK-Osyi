@@ -1,0 +1,354 @@
+from pathlib import Path
+
+html = r'''<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TaskMate - Pengingat Kegiatan Harian</title>
+  <style>
+    :root {
+      --primary: #5367d8;
+      --primary-dark: #4053bf;
+      --bg: #f4f6fc;
+      --card: #ffffff;
+      --text: #20243a;
+      --muted: #737991;
+      --line: #e7eaf3;
+      --green: #198754;
+      --red: #d94b5b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+    .container { width: min(900px, 92%); margin: 0 auto; padding: 28px 0 48px; }
+    header { text-align: center; margin-bottom: 24px; }
+    .logo {
+      display: inline-grid; place-items: center; width: 54px; height: 54px;
+      border-radius: 17px; background: var(--primary); color: white;
+      font-size: 26px; margin-bottom: 10px;
+    }
+    h1 { margin: 0; font-size: 30px; }
+    .subtitle { color: var(--muted); margin: 8px 0 0; font-size: 14px; }
+    .panel {
+      background: var(--card); border: 1px solid var(--line); border-radius: 18px;
+      padding: 22px; box-shadow: 0 8px 28px rgba(34, 48, 100, .05);
+      margin-bottom: 18px;
+    }
+    h2 { margin: 0 0 16px; font-size: 18px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 13px; }
+    .field.full { grid-column: 1 / -1; }
+    label { display: block; font-size: 13px; font-weight: 700; margin-bottom: 7px; }
+    input, select {
+      width: 100%; padding: 12px 13px; border: 1px solid #dfe3ee;
+      border-radius: 10px; font-size: 14px; color: var(--text); background: white;
+      outline: none;
+    }
+    input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(83,103,216,.12); }
+    button {
+      border: 0; border-radius: 10px; padding: 11px 15px; font-weight: 700;
+      font-size: 14px; cursor: pointer; transition: .15s ease;
+    }
+    button:hover { filter: brightness(.96); transform: translateY(-1px); }
+    .primary { background: var(--primary); color: white; }
+    .primary:hover { background: var(--primary-dark); }
+    .secondary { background: #eef0ff; color: var(--primary-dark); }
+    .danger { background: #fff0f1; color: var(--red); }
+    .form-actions { display: flex; gap: 9px; margin-top: 16px; }
+    .form-actions button { flex: 1; }
+    .toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 14px; }
+    .toolbar h2 { margin: 0; }
+    .filters { display: flex; gap: 7px; flex-wrap: wrap; }
+    .filter { background: #f0f2f8; color: #626a82; padding: 8px 11px; font-size: 12px; }
+    .filter.active { background: var(--primary); color: white; }
+    .task-list { display: grid; gap: 10px; }
+    .task {
+      display: flex; align-items: flex-start; gap: 12px; padding: 14px;
+      border: 1px solid var(--line); border-radius: 13px; background: white;
+    }
+    .task input[type="checkbox"] { width: 19px; height: 19px; margin: 2px 0 0; accent-color: var(--primary); flex: 0 0 auto; }
+    .task-main { flex: 1; min-width: 0; }
+    .task-title { font-weight: 700; overflow-wrap: anywhere; }
+    .task.done .task-title { text-decoration: line-through; color: #969caf; }
+    .task-meta { color: var(--muted); font-size: 12px; margin-top: 6px; }
+    .task-category {
+      display: inline-block; margin-top: 7px; padding: 4px 8px; border-radius: 20px;
+      background: #eef0ff; color: var(--primary-dark); font-size: 11px;
+    }
+    .task-actions { display: flex; gap: 6px; }
+    .task-actions button { padding: 7px 9px; font-size: 12px; }
+    .empty { text-align: center; padding: 28px 12px; color: var(--muted); font-size: 14px; }
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 18px; }
+    .stat { background: white; border: 1px solid var(--line); border-radius: 13px; padding: 14px; text-align: center; }
+    .stat strong { display: block; font-size: 23px; color: var(--primary); }
+    .stat span { color: var(--muted); font-size: 12px; }
+    footer { text-align: center; color: var(--muted); font-size: 12px; margin-top: 22px; }
+    @media (max-width: 600px) {
+      .container { padding-top: 22px; }
+      h1 { font-size: 26px; }
+      .panel { padding: 17px; }
+      .form-grid { grid-template-columns: 1fr; }
+      .field.full { grid-column: auto; }
+      .toolbar { align-items: flex-start; flex-direction: column; }
+      .task { gap: 9px; }
+      .task-actions { flex-direction: column; }
+      .task-actions button { padding: 7px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <header>
+      <div class="logo">✓</div>
+      <h1>TaskMate</h1>
+      <p class="subtitle">Atur kegiatanmu, selesaikan harimu dengan lebih teratur.</p>
+    </header>
+
+    <section class="stats" aria-label="Ringkasan kegiatan">
+      <div class="stat"><strong id="totalCount">0</strong><span>Total kegiatan</span></div>
+      <div class="stat"><strong id="pendingCount">0</strong><span>Belum selesai</span></div>
+      <div class="stat"><strong id="doneCount">0</strong><span>Selesai</span></div>
+    </section>
+
+    <section class="panel">
+      <h2 id="formTitle">＋ Tambah Kegiatan</h2>
+      <form id="taskForm">
+        <div class="form-grid">
+          <div class="field full">
+            <label for="taskName">Nama kegiatan</label>
+            <input id="taskName" type="text" placeholder="Contoh: Mengerjakan tugas matematika" maxlength="90" required>
+          </div>
+          <div class="field">
+            <label for="taskDate">Tanggal</label>
+            <input id="taskDate" type="date" required>
+          </div>
+          <div class="field">
+            <label for="taskTime">Waktu</label>
+            <input id="taskTime" type="time" required>
+          </div>
+          <div class="field full">
+            <label for="taskCategory">Kategori</label>
+            <select id="taskCategory">
+              <option value="Sekolah">Sekolah</option>
+              <option value="Rumah">Rumah</option>
+              <option value="Pribadi">Pribadi</option>
+              <option value="Lainnya">Lainnya</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="primary" id="saveButton" type="submit">Simpan Kegiatan</button>
+          <button class="secondary" id="cancelButton" type="button" hidden>Batal</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="panel">
+      <div class="toolbar">
+        <h2>Daftar Kegiatan</h2>
+        <div class="filters" aria-label="Filter kegiatan">
+          <button class="filter active" data-filter="all">Semua</button>
+          <button class="filter" data-filter="pending">Belum selesai</button>
+          <button class="filter" data-filter="done">Selesai</button>
+        </div>
+      </div>
+      <div id="taskList" class="task-list"></div>
+    </section>
+    <footer>TaskMate • Pengingat Kegiatan Harian</footer>
+  </main>
+
+  <script>
+    const STORAGE_KEY = "taskmate_tasks_v1";
+    let tasks = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+    let editingId = null;
+    let currentFilter = "all";
+
+    const form = document.getElementById("taskForm");
+    const nameInput = document.getElementById("taskName");
+    const dateInput = document.getElementById("taskDate");
+    const timeInput = document.getElementById("taskTime");
+    const categoryInput = document.getElementById("taskCategory");
+    const taskList = document.getElementById("taskList");
+
+    // Isi tanggal hari ini sebagai nilai awal.
+    const today = new Date();
+    const localToday = new Date(today.getTime() - today.getTimezoneOffset() * 60000)
+      .toISOString().slice(0, 10);
+    dateInput.value = localToday;
+    timeInput.value = "15:00";
+
+    function saveToStorage() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+    }
+
+    function updateStats() {
+      document.getElementById("totalCount").textContent = tasks.length;
+      document.getElementById("doneCount").textContent = tasks.filter(task => task.done).length;
+      document.getElementById("pendingCount").textContent = tasks.filter(task => !task.done).length;
+    }
+
+    function formatDate(dateString) {
+      if (!dateString) return "";
+      const [year, month, day] = dateString.split("-").map(Number);
+      return new Date(year, month - 1, day).toLocaleDateString("id-ID", {
+        day: "numeric", month: "long", year: "numeric"
+      });
+    }
+
+    function renderTasks() {
+      updateStats();
+      let visibleTasks = [...tasks];
+
+      if (currentFilter === "pending") visibleTasks = visibleTasks.filter(task => !task.done);
+      if (currentFilter === "done") visibleTasks = visibleTasks.filter(task => task.done);
+
+      visibleTasks.sort((a, b) =>
+        (a.date + "T" + a.time).localeCompare(b.date + "T" + b.time)
+      );
+
+      taskList.innerHTML = "";
+      if (visibleTasks.length === 0) {
+        taskList.innerHTML = '<div class="empty">Belum ada kegiatan di sini. Yuk, tambahkan kegiatanmu!</div>';
+        return;
+      }
+
+      visibleTasks.forEach(task => {
+        const item = document.createElement("article");
+        item.className = "task" + (task.done ? " done" : "");
+
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.checked = task.done;
+        checkbox.setAttribute("aria-label", "Tandai kegiatan selesai");
+        checkbox.addEventListener("change", () => toggleTask(task.id));
+
+        const main = document.createElement("div");
+        main.className = "task-main";
+
+        const title = document.createElement("div");
+        title.className = "task-title";
+        title.textContent = task.name;
+
+        const meta = document.createElement("div");
+        meta.className = "task-meta";
+        meta.textContent = "📅 " + formatDate(task.date) + "  •  🕒 " + task.time;
+
+        const category = document.createElement("span");
+        category.className = "task-category";
+        category.textContent = task.category;
+
+        main.append(title, meta, category);
+
+        const actions = document.createElement("div");
+        actions.className = "task-actions";
+
+        const editButton = document.createElement("button");
+        editButton.className = "secondary";
+        editButton.type = "button";
+        editButton.textContent = "Edit";
+        editButton.addEventListener("click", () => editTask(task.id));
+
+        const deleteButton = document.createElement("button");
+        deleteButton.className = "danger";
+        deleteButton.type = "button";
+        deleteButton.textContent = "Hapus";
+        deleteButton.addEventListener("click", () => deleteTask(task.id));
+
+        actions.append(editButton, deleteButton);
+        item.append(checkbox, main, actions);
+        taskList.appendChild(item);
+      });
+    }
+
+    form.addEventListener("submit", event => {
+      event.preventDefault();
+      const name = nameInput.value.trim();
+      if (!name) return;
+
+      const taskData = {
+        name,
+        date: dateInput.value,
+        time: timeInput.value,
+        category: categoryInput.value
+      };
+
+      if (editingId !== null) {
+        tasks = tasks.map(task => task.id === editingId ? { ...task, ...taskData } : task);
+        editingId = null;
+      } else {
+        tasks.push({ id: Date.now().toString(), ...taskData, done: false });
+      }
+
+      saveToStorage();
+      form.reset();
+      dateInput.value = localToday;
+      timeInput.value = "15:00";
+      document.getElementById("formTitle").textContent = "＋ Tambah Kegiatan";
+      document.getElementById("saveButton").textContent = "Simpan Kegiatan";
+      document.getElementById("cancelButton").hidden = true;
+      renderTasks();
+    });
+
+    function editTask(id) {
+      const task = tasks.find(item => item.id === id);
+      if (!task) return;
+      editingId = id;
+      nameInput.value = task.name;
+      dateInput.value = task.date;
+      timeInput.value = task.time;
+      categoryInput.value = task.category;
+      document.getElementById("formTitle").textContent = "✎ Edit Kegiatan";
+      document.getElementById("saveButton").textContent = "Simpan Perubahan";
+      document.getElementById("cancelButton").hidden = false;
+      document.querySelector(".panel").scrollIntoView({ behavior: "smooth" });
+      nameInput.focus();
+    }
+
+    function toggleTask(id) {
+      tasks = tasks.map(task => task.id === id ? { ...task, done: !task.done } : task);
+      saveToStorage();
+      renderTasks();
+    }
+
+    function deleteTask(id) {
+      if (!confirm("Yakin ingin menghapus kegiatan ini?")) return;
+      tasks = tasks.filter(task => task.id !== id);
+      if (editingId === id) resetForm();
+      saveToStorage();
+      renderTasks();
+    }
+
+    function resetForm() {
+      editingId = null;
+      form.reset();
+      dateInput.value = localToday;
+      timeInput.value = "15:00";
+      document.getElementById("formTitle").textContent = "＋ Tambah Kegiatan";
+      document.getElementById("saveButton").textContent = "Simpan Kegiatan";
+      document.getElementById("cancelButton").hidden = true;
+    }
+
+    document.getElementById("cancelButton").addEventListener("click", resetForm);
+
+    document.querySelectorAll(".filter").forEach(button => {
+      button.addEventListener("click", () => {
+        currentFilter = button.dataset.filter;
+        document.querySelectorAll(".filter").forEach(item => item.classList.remove("active"));
+        button.classList.add("active");
+        renderTasks();
+      });
+    });
+
+    renderTasks();
+  </script>
+</body>
+</html>
+'''
+
+path = Path("/mnt/data/taskmate.html")
+path.write_text(html, encoding="utf-8")
+print(f"File berhasil dibuat: {path}")
